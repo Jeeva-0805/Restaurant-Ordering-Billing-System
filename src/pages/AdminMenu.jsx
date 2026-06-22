@@ -26,10 +26,21 @@ function AdminMenu() {
   ]);
 
   const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("");
+const [price, setPrice] = useState("");
+const [category, setCategory] = useState("");
 
-  const [editId, setEditId] = useState(null);
+const [categories, setCategories] = useState([
+  "Fast Food",
+  "Rice",
+  "Dessert",
+  "Beverage",
+]);
+
+const [newCategory, setNewCategory] = useState("");
+
+const [search, setSearch] = useState("");
+
+const [editId, setEditId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editPrice, setEditPrice] = useState("");
 
@@ -84,6 +95,25 @@ function AdminMenu() {
     setEditId(null);
   };
 
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const addCategory = () => {
+  if (!newCategory) return;
+
+  setCategories([...categories, newCategory]);
+  setNewCategory("");
+};
+
+const deleteCategory = (categoryName) => {
+  setCategories(
+    categories.filter(
+      (cat) => cat !== categoryName
+    )
+  );
+};
+
   return (
     <div
       className="container mt-4"
@@ -105,6 +135,93 @@ function AdminMenu() {
         🍽️ Admin Menu Management
       </h1>
 
+      {/* Statistics Cards */}
+      <div className="row mb-4">
+        <div className="col-md-4">
+          <div className="card bg-warning text-dark p-3">
+            <h5>Total Items</h5>
+            <h2>{items.length}</h2>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card bg-success text-white p-3">
+            <h5>Available</h5>
+            <h2>
+              {items.filter((item) => item.available).length}
+            </h2>
+          </div>
+        </div>
+
+        <div className="col-md-4">
+          <div className="card bg-danger text-white p-3">
+            <h5>Unavailable</h5>
+            <h2>
+              {items.filter((item) => !item.available).length}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-warning mb-3">
+  Category Management
+</h3>
+
+<div className="card bg-dark p-3 mb-4">
+  <ul className="list-group">
+    <li className="list-group-item">
+      Fast Food
+    </li>
+    <li className="list-group-item">
+      Rice
+    </li>
+    <li className="list-group-item">
+      Dessert
+    </li>
+    <li className="list-group-item">
+      Beverage
+    </li>
+  </ul>
+</div>
+        <div className="card bg-dark p-4 mb-4">
+  <h4 className="text-warning mb-3">
+    📂 Category Management
+  </h4>
+
+  <div className="d-flex gap-2 mb-3">
+    <input
+      className="form-control"
+      placeholder="New Category"
+      value={newCategory}
+      onChange={(e) =>
+        setNewCategory(e.target.value)
+      }
+    />
+
+    <button
+      className="btn btn-warning"
+      onClick={addCategory}
+    >
+      Add
+    </button>
+  </div>
+
+  {categories.map((cat) => (
+    <div
+      key={cat}
+      className="d-flex justify-content-between align-items-center bg-secondary p-2 rounded mb-2"
+    >
+      <span>{cat}</span>
+
+      <button
+        className="btn btn-sm btn-danger"
+        onClick={() => deleteCategory(cat)}
+      >
+        Delete
+      </button>
+    </div>
+  ))}
+</div>
       {/* Add Item Form */}
       <div className="card bg-dark p-4 mb-4">
         <input
@@ -122,16 +239,17 @@ function AdminMenu() {
         />
 
         <select
-            className="form-control mb-3"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
->
-            <option value="">Select Category</option>
-            <option value="Fast Food">Fast Food</option>
-            <option value="Rice">Rice</option>
-            <option value="Dessert">Dessert</option>
-            <option value="Beverage">Beverage</option>
-            </select>
+          className="form-control mb-3"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="">Select Category</option>
+          {categories.map((cat) => (
+  <option key={cat} value={cat}>
+    {cat}
+  </option>
+))}
+        </select>
 
         <button
           className="btn btn-warning fw-bold"
@@ -140,6 +258,15 @@ function AdminMenu() {
           Add Item
         </button>
       </div>
+
+      {/* Search */}
+      <input
+        type="text"
+        className="form-control mb-4"
+        placeholder="Search Food Item..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
       {/* Edit Form */}
       {editId && (
@@ -173,7 +300,6 @@ function AdminMenu() {
         </div>
       )}
 
-      {/* Table */}
       <table className="table table-dark table-striped text-center">
         <thead>
           <tr>
@@ -181,14 +307,14 @@ function AdminMenu() {
             <th>Price</th>
             <th>Category</th>
             <th>Status</th>
-            <th style={{ width: "300px" }}>
+            <th style={{ width: "320px" }}>
               Actions
             </th>
           </tr>
         </thead>
 
         <tbody>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <tr key={item.id}>
               <td>{item.name}</td>
 
@@ -231,14 +357,22 @@ function AdminMenu() {
                       toggleAvailability(item.id)
                     }
                   >
-                    Toggle
+                    {item.available
+                      ? "Disable"
+                      : "Enable"}
                   </button>
 
                   <button
                     className="btn btn-danger"
-                    onClick={() =>
-                      deleteItem(item.id)
-                    }
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Delete this item?"
+                        )
+                      ) {
+                        deleteItem(item.id);
+                      }
+                    }}
                   >
                     Delete
                   </button>
